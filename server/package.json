@@ -1,0 +1,25 @@
+{
+  "name": "personal-gemini-journal-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure Node.js backend for the Personal Gemini Journal challenge.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@google-cloud/secret-manager": "^6.1.1",
+    "@google/genai": "^1.24.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "firebase-admin": "^13.5.0",
+    "helmet": "^8.1.0",
+    "zod": "^4.1.5"
+  }
+}
