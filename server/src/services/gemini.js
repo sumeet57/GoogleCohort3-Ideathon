@@ -1,21 +1,31 @@
-import { GoogleGenAI } from '@google/genai';
-import { config } from '../config.js';
-import { getGeminiApiKey } from './secretManager.js';
+import { GoogleGenAI } from "@google/genai";
+import serviceAccount from "../../cohort3-lab2-firebase-adminsdk-fbsvc-585106b56d.json"
+  with { type: "json" };
+
+import { config } from "../config.js";
 
 let aiClientPromise;
 
 async function getClient() {
   if (!aiClientPromise) {
-    aiClientPromise = getGeminiApiKey().then((apiKey) => new GoogleGenAI({
-      vertexai: true,
-      apiKey,
-      project: config.GOOGLE_CLOUD_PROJECT,
-      location: config.GOOGLE_CLOUD_LOCATION
-    }));
+    aiClientPromise = Promise.resolve(
+      new GoogleGenAI({
+        vertexai: true,
+        project: serviceAccount.project_id,
+        location: config.GOOGLE_CLOUD_LOCATION,
+
+        googleAuthOptions: {
+          credentials: {
+            client_email: serviceAccount.client_email,
+            private_key: serviceAccount.private_key,
+          },
+        },
+      })
+    );
   }
+
   return aiClientPromise;
 }
-
 const MODE_INSTRUCTIONS = {
   reflect: 'Act as a thoughtful reflection partner. Unpack assumptions, identify patterns, and ask useful perspective-shifting questions. Do not diagnose the user.',
   brainstorm: 'Act as a creative thinking partner. Generate divergent but practical options, challenge assumptions, and make trade-offs explicit.',

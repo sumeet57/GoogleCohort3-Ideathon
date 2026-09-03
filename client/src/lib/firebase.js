@@ -24,10 +24,11 @@ export const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 export async function getAuthToken(forceRefresh = false) {
-    if (!auth.currentUser) {
-        throw new Error("You must be signed in to continue.");
-    }
-    return auth.currentUser.getIdToken(forceRefresh);
+  if (!auth.currentUser) {
+    return null;
+  }
+
+  return auth.currentUser.getIdToken(forceRefresh);
 }
 export async function signInWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
