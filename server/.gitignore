@@ -8,3 +8,4 @@ coverage/
 service-account*.json
 *.pem
 *.key
+secret-local*.json

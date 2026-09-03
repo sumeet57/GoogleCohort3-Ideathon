@@ -1,27 +1,44 @@
 import { GoogleGenAI } from "@google/genai";
-import serviceAccount from "../../cohort3-lab2-firebase-adminsdk-fbsvc-585106b56d.json"
-  with { type: "json" };
-
 import { config } from "../config.js";
+
+const isCloudRun = Boolean(process.env.K_SERVICE);
 
 let aiClientPromise;
 
 async function getClient() {
   if (!aiClientPromise) {
-    aiClientPromise = Promise.resolve(
-      new GoogleGenAI({
-        vertexai: true,
-        project: serviceAccount.project_id,
-        location: config.GOOGLE_CLOUD_LOCATION,
+    if (isCloudRun) {
+      // Cloud Run uses its attached service account automatically.
+      aiClientPromise = Promise.resolve(
+        new GoogleGenAI({
+          vertexai: true,
+          project: config.GOOGLE_CLOUD_PROJECT,
+          location: config.GOOGLE_CLOUD_LOCATION,
+        })
+      );
+    } else {
+      // Local development uses the Firebase service-account JSON.
+      const { default: serviceAccount } = await import(
+        "../../secret-local.json",
+        {
+          with: { type: "json" },
+        }
+      );
 
-        googleAuthOptions: {
-          credentials: {
-            client_email: serviceAccount.client_email,
-            private_key: serviceAccount.private_key,
+      aiClientPromise = Promise.resolve(
+        new GoogleGenAI({
+          vertexai: true,
+          project: serviceAccount.project_id,
+          location: config.GOOGLE_CLOUD_LOCATION,
+          googleAuthOptions: {
+            credentials: {
+              client_email: serviceAccount.client_email,
+              private_key: serviceAccount.private_key,
+            },
           },
-        },
-      })
-    );
+        })
+      );
+    }
   }
 
   return aiClientPromise;

@@ -1,16 +1,32 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import serviceAccount from "../../cohort3-lab2-firebase-adminsdk-fbsvc-585106b56d.json"
-  with { type: "json" };
-
 import { config } from "../config.js";
 
-const client = new SecretManagerServiceClient({
-  projectId: serviceAccount.project_id,
-  credentials: {
-    client_email: serviceAccount.client_email,
-    private_key: serviceAccount.private_key,
-  },
-});
+const isCloudRun = Boolean(process.env.K_SERVICE);
+
+let client;
+
+if (isCloudRun) {
+  // Cloud Run uses its attached service account automatically.
+  client = new SecretManagerServiceClient({
+    projectId: config.GOOGLE_CLOUD_PROJECT,
+  });
+} else {
+  // Local development uses the local service-account JSON.
+  const { default: serviceAccount } = await import(
+    "../../secret-local.json",
+    {
+      with: { type: "json" },
+    }
+  );
+
+  client = new SecretManagerServiceClient({
+    projectId: serviceAccount.project_id,
+    credentials: {
+      client_email: serviceAccount.client_email,
+      private_key: serviceAccount.private_key,
+    },
+  });
+}
 
 let cachedApiKey = null;
 

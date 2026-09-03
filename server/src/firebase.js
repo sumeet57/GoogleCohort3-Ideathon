@@ -2,14 +2,28 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-import serviceAccount from "../cohort3-lab2-firebase-adminsdk-fbsvc-585106b56d.json"
-  with { type: "json" };
+const isCloudRun = Boolean(process.env.K_SERVICE);
 
-const app = getApps().length
-  ? getApps()[0]
-  : initializeApp({
-      credential: cert(serviceAccount),
-    });
+let app;
+
+if (getApps().length) {
+  app = getApps()[0];
+} else if (isCloudRun) {
+  // Cloud Run uses its attached service account automatically.
+  app = initializeApp();
+} else {
+  // Local development uses the Firebase Admin service-account JSON.
+  const { default: serviceAccount } = await import(
+    "../secret-local.json",
+    {
+      with: { type: "json" },
+    }
+  );
+
+  app = initializeApp({
+    credential: cert(serviceAccount),
+  });
+}
 
 export const firebaseAuth = getAuth(app);
 
