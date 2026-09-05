@@ -75,7 +75,7 @@ app.get('/api/location/geocode', requireAuth, apiLimiter, async (req, res) => {
     const mapsApiKey = process.env.GOOGLE_MAPS_API_KEY || config.GOOGLE_MAPS_API_KEY;
     if (!mapsApiKey) {
       return res.json({
-        placeName: `Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+        placeName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
         address: ''
       });
     }
@@ -86,14 +86,32 @@ app.get('/api/location/geocode', requireAuth, apiLimiter, async (req, res) => {
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      const topResult = data.results[0];
-      const address = topResult.formatted_address;
-      const placeName = data.results[1]?.address_components[0]?.long_name || address.split(',')[0];
+      // Direct formatted address se Plus Code wala result ignore karo
+      const cleanResult = data.results.find((r) => !r.formatted_address.includes('+')) || data.results[0];
+      const address = cleanResult.formatted_address;
+
+      const components = cleanResult.address_components || [];
+      const sublocality = components.find((c) =>
+        c.types.includes('sublocality') || c.types.includes('neighborhood')
+      )?.long_name;
+      const locality = components.find((c) =>
+        c.types.includes('locality')
+      )?.long_name;
+
+      // Extract clear human readable name like "Vile Parle, Mumbai"
+      let placeName = '';
+      if (sublocality && locality) {
+        placeName = `${sublocality}, ${locality}`;
+      } else if (locality) {
+        placeName = locality;
+      } else {
+        placeName = address.split(',').slice(0, 3).join(',').trim();
+      }
 
       return res.json({ address, placeName });
     }
 
-    res.json({ placeName: `Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`, address: '' });
+    res.json({ placeName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, address: '' });
   } catch (error) {
     console.error('[Geocoding Error]', error);
     res.status(500).json({ error: 'Failed to reverse geocode coordinates.' });

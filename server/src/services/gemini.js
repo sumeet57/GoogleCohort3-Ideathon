@@ -130,11 +130,19 @@ export async function reflect({ prompt, history = [], mode = 'reflect', entryCon
 
   let locationPrompt = '';
   if (location && typeof location === 'object') {
-    const place = location.placeName || location.address || `${location.latitude}, ${location.longitude}`;
-    locationPrompt = `\nPinned User Location: ${place}`;
+    // Agar placeName me '+' hai (Plus Code), toh full address use karo
+    const isValidPlace = location.placeName && !location.placeName.includes('+');
+    const place = isValidPlace ? location.placeName : (location.address || `${location.latitude}, ${location.longitude}`);
+    
+    if (place) {
+      locationPrompt = `\n\n[USER CURRENT LOCATION CONTEXT]:
+The user is physically located at: "${place}".
+IMPORTANT: You DO have access to their location. If the user asks if you know their location or asks for nearby recommendations, explicitly acknowledge that they are at or near "${place}" and give local suggestions for this region. Never state that you don't have access to their location.`;
+    }
   }
 
-  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}\n${locationPrompt}\n\nCurrent journal context (may be empty):\n${context || '(none)'}`;
+  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}${locationPrompt}\n\nCurrent journal context:\n${context || '(none)'}`;
+  
   const contents = [
     ...historyToContents(clean),
     { role: 'user', parts: [{ text: prompt }] }
