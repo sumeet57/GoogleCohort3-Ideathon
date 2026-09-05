@@ -164,7 +164,7 @@ Conversation behavior:
 - Preserve the user's intent and emotional nuance.
 - This is reflective journaling, not medical, legal, or financial professional advice.
 - You may use Markdown for readability.`;
-
+console.log(userLocationString);
   const systemInstruction = `${DYNAMIC_BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}\n\nCurrent journal context (may be empty):\n${context || '(none)'}`;
   
   const contents = [
