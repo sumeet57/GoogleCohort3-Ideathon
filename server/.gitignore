@@ -5,7 +5,7 @@ node_modules/
 npm-debug.log*
 .DS_Store
 coverage/
-service-account*.json
+# service-account*.json
 *.pem
 *.key
 secret-local*.json

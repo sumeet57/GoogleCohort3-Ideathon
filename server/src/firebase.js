@@ -28,4 +28,4 @@ if (getApps().length) {
 export const firebaseAuth = getAuth(app);
 
 // IMPORTANT: your Firestore database is named "testing"
-export const firestore = getFirestore(app, "testing");
+export const firestore = getFirestore(app);

@@ -54,6 +54,7 @@ app.get('/health', (_req, res) => {
     ok: true,
     service: 'personal-gemini-journal-server',
     model: config.GEMINI_MODEL,
+    project: config.GOOGLE_CLOUD_PROJECT,
     timestamp: new Date().toISOString()
   });
 });
@@ -67,9 +68,10 @@ app.use('/api/entries', requireAuth, apiLimiter, entriesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
+const PORT = Number(process.env.PORT || config.PORT || 8080);
 
-app.listen(config.PORT, () => {
-  console.log(`Personal Gemini Journal server listening on port ${config.PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Personal Gemini Journal server listening on port ${PORT}`);
   console.log(`Model: ${config.GEMINI_MODEL}`);
   console.log(`Google Cloud project: ${config.GOOGLE_CLOUD_PROJECT}`);
 });
