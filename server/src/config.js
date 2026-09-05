@@ -21,7 +21,8 @@ const envSchema = z.object({
   AI_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   AI_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
   API_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
-  API_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120)
+  API_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
+  GOOGLE_MAPS_API_KEY: z.string().min(1).default('YOUR_GOOGLE_MAPS_API_KEY')
 });
 
 const env = envSchema.parse(process.env);

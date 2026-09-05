@@ -8,7 +8,6 @@ let aiClientPromise;
 async function getClient() {
   if (!aiClientPromise) {
     if (isCloudRun) {
-      // Cloud Run uses its attached service account automatically.
       aiClientPromise = Promise.resolve(
         new GoogleGenAI({
           vertexai: true,
@@ -17,7 +16,6 @@ async function getClient() {
         })
       );
     } else {
-      // Local development uses the Firebase service-account JSON.
       const { default: serviceAccount } = await import(
         "../../secret-local.json",
         {
@@ -43,6 +41,7 @@ async function getClient() {
 
   return aiClientPromise;
 }
+
 const MODE_INSTRUCTIONS = {
   reflect: 'Act as a thoughtful reflection partner. Unpack assumptions, identify patterns, and ask useful perspective-shifting questions. Do not diagnose the user.',
   brainstorm: 'Act as a creative thinking partner. Generate divergent but practical options, challenge assumptions, and make trade-offs explicit.',
@@ -87,7 +86,6 @@ function cleanHistory(history, maxMessages, maxChars) {
     total += item.text.length;
   }
 
-  // Gemini chat history must start with a user turn.
   while (result.length && result[0].role === 'model') result.shift();
   return result;
 }
@@ -125,12 +123,18 @@ async function generate({ contents, systemInstruction, responseSchema }) {
   return text;
 }
 
-export async function reflect({ prompt, history = [], mode = 'reflect', entryContext = '' }) {
+export async function reflect({ prompt, history = [], mode = 'reflect', entryContext = '', location = null }) {
   const safeMode = MODE_INSTRUCTIONS[mode] ? mode : 'reflect';
   const clean = cleanHistory(history, config.MAX_HISTORY_MESSAGES, config.MAX_HISTORY_CHARS);
   const context = String(entryContext || '').slice(0, config.MAX_ENTRY_TEXT_CHARS);
 
-  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}\n\nCurrent journal context (may be empty):\n${context || '(none)'}`;
+  let locationPrompt = '';
+  if (location && typeof location === 'object') {
+    const place = location.placeName || location.address || `${location.latitude}, ${location.longitude}`;
+    locationPrompt = `\nPinned User Location: ${place}`;
+  }
+
+  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}\n${locationPrompt}\n\nCurrent journal context (may be empty):\n${context || '(none)'}`;
   const contents = [
     ...historyToContents(clean),
     { role: 'user', parts: [{ text: prompt }] }

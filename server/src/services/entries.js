@@ -18,6 +18,12 @@ function sanitizeEntry(entry, uid, entryId) {
       ...(m?.mode ? { mode: String(m.mode).slice(0, 30) } : {}),
       ...(m?.modelUsed ? { modelUsed: String(m.modelUsed).slice(0, 100) } : {})
     })) : [],
+    location: entry.location && typeof entry.location === 'object' ? {
+      latitude: Number(entry.location.latitude) || 0,
+      longitude: Number(entry.location.longitude) || 0,
+      address: String(entry.location.address || '').slice(0, 500),
+      placeName: String(entry.location.placeName || '').slice(0, 300)
+    } : null,
     synthesis: entry.synthesis && typeof entry.synthesis === 'object' ? {
       title: String(entry.synthesis.title || '').slice(0, 300),
       summary: String(entry.synthesis.summary || '').slice(0, 10000),

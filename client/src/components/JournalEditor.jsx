@@ -290,7 +290,7 @@ export const JournalEditor = ({
         const lng = position.coords.longitude;
 
         try {
-          const res = await fetch(`http://localhost:5000/api/location/geocode?lat=${lat}&lng=${lng}`);
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`);
           const geoData = await res.json();
 
           const updatedLocation = {

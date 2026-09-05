@@ -63,6 +63,43 @@ app.get('/api/me', requireAuth, apiLimiter, (req, res) => {
   res.json({ user: req.user });
 });
 
+app.get('/api/location/geocode', requireAuth, apiLimiter, async (req, res) => {
+  try {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ error: 'Valid lat and lng parameters are required.' });
+    }
+
+    const mapsApiKey = process.env.GOOGLE_MAPS_API_KEY || config.GOOGLE_MAPS_API_KEY;
+    if (!mapsApiKey) {
+      return res.json({
+        placeName: `Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+        address: ''
+      });
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${mapsApiKey}`
+    );
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      const topResult = data.results[0];
+      const address = topResult.formatted_address;
+      const placeName = data.results[1]?.address_components[0]?.long_name || address.split(',')[0];
+
+      return res.json({ address, placeName });
+    }
+
+    res.json({ placeName: `Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`, address: '' });
+  } catch (error) {
+    console.error('[Geocoding Error]', error);
+    res.status(500).json({ error: 'Failed to reverse geocode coordinates.' });
+  }
+});
+
 app.use('/api/gemini', requireAuth, aiLimiter, geminiRoutes);
 app.use('/api/entries', requireAuth, apiLimiter, entriesRoutes);
 
