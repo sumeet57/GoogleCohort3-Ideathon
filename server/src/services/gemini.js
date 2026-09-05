@@ -123,25 +123,26 @@ async function generate({ contents, systemInstruction, responseSchema }) {
   return text;
 }
 
-export async function reflect({ prompt, history = [], mode = 'reflect', entryContext = '', location = null }) {
+export async function reflect({ prompt, history = [], mode = 'reflect', entryContext = '', location = null, Location = null }) {
   const safeMode = MODE_INSTRUCTIONS[mode] ? mode : 'reflect';
   const clean = cleanHistory(history, config.MAX_HISTORY_MESSAGES, config.MAX_HISTORY_CHARS);
   const context = String(entryContext || '').slice(0, config.MAX_ENTRY_TEXT_CHARS);
 
+  const activeLoc = location || Location;
+
   let locationPrompt = '';
-  if (location && typeof location === 'object') {
-    // Agar placeName me '+' hai (Plus Code), toh full address use karo
-    const isValidPlace = location.placeName && !location.placeName.includes('+');
-    const place = isValidPlace ? location.placeName : (location.address || `${location.latitude}, ${location.longitude}`);
-    
+  if (activeLoc && typeof activeLoc === 'object') {
+    const hasValidPlace = activeLoc.placeName && !activeLoc.placeName.includes('+');
+    const place = hasValidPlace 
+      ? activeLoc.placeName 
+      : (activeLoc.address || `${activeLoc.latitude}, ${activeLoc.longitude}`);
+
     if (place) {
-      locationPrompt = `\n\n[USER CURRENT LOCATION CONTEXT]:
-The user is physically located at: "${place}".
-IMPORTANT: You DO have access to their location. If the user asks if you know their location or asks for nearby recommendations, explicitly acknowledge that they are at or near "${place}" and give local suggestions for this region. Never state that you don't have access to their location.`;
+      locationPrompt = `\nPinned User Location: ${place}`;
     }
   }
 
-  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}${locationPrompt}\n\nCurrent journal context:\n${context || '(none)'}`;
+  const systemInstruction = `${BASE_SYSTEM}\n\nMode: ${safeMode}\n${MODE_INSTRUCTIONS[safeMode]}\n${locationPrompt}\n\nCurrent journal context (may be empty):\n${context || '(none)'}`;
   
   const contents = [
     ...historyToContents(clean),
