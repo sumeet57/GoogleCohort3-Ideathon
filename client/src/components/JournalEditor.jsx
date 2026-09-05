@@ -23,7 +23,7 @@ import {
   MapPin
 } from "lucide-react";
 import { askGeminiReflection, askGeminiSummarize } from "../lib/gemini";
-import { saveJournalEntry } from "../lib/firebase";
+import { saveJournalEntry, auth } from "../lib/firebase";
 
 const INSPIRATION_PROMPTS = [
   {
@@ -277,46 +277,63 @@ export const JournalEditor = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleAttachLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
-      return;
-    }
+const handleAttachLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
 
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+  setIsLocating(true);
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
 
-        try {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`);
-          const geoData = await res.json();
-
-          console.log("[Geocode Result]", geoData);
-
-          const updatedLocation = {
-            latitude: lat,
-            longitude: lng,
-            address: geoData.address,
-            placeName: geoData.placeName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-          };
-
-          const updatedEntry = { ...entry, location: updatedLocation, updatedAt: Date.now() };
-          setEntry(updatedEntry);
-          await persistEntry(updatedEntry);
-        } catch (err) {
-          console.error("Location error:", err);
-        } finally {
-          setIsLocating(false);
+      try {
+        // 1. Get the current user's Firebase ID Token
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error("User must be authenticated to pin location.");
         }
-      },
-      () => {
+        const token = await currentUser.getIdToken();
+
+        // 2. Pass the Bearer token in headers
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Geocoding failed");
+        }
+
+        const geoData = await res.json();
+
+        const updatedLocation = {
+          latitude: lat,
+          longitude: lng,
+          address: geoData.address || "",
+          placeName: geoData.placeName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+        };
+
+        const updatedEntry = { ...entry, location: updatedLocation, updatedAt: Date.now() };
+        setEntry(updatedEntry);
+        await persistEntry(updatedEntry);
+      } catch (err) {
+        console.error("Location error:", err);
+        setErrorMessage(err.message || "Failed to retrieve location details.");
+      } finally {
         setIsLocating(false);
-        alert("Unable to retrieve location.");
       }
-    );
-  };
+    },
+    (err) => {
+      setIsLocating(false);
+      alert("Unable to retrieve location from browser. Please allow location permissions.");
+    }
+  );
+};
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-6">
