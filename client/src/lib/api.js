@@ -5,10 +5,7 @@ const configuredBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 export async function apiRequest(path, options = {}) {
  const token = await getAuthToken();
 
-console.log(
-  "[API] Firebase user:",
-  token ? "TOKEN PRESENT" : "NO TOKEN"
-);
+
   const response = await fetch(`${configuredBase}${path}`, {
     ...options,
     headers: {

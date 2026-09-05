@@ -199,7 +199,7 @@ export const JournalEditor = ({
         history: entry.messages,
         mode,
         entryContext: entry.initialThought,
-        location: entry.location || null,
+        location: entry.location ? entry.location : null,
       });
 
       const assistantMessage = {
@@ -292,6 +292,8 @@ export const JournalEditor = ({
         try {
           const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`);
           const geoData = await res.json();
+
+          console.log("[Geocode Result]", geoData);
 
           const updatedLocation = {
             latitude: lat,
