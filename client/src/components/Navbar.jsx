@@ -1,5 +1,16 @@
-import React from "react";
-import { Sparkles, BookOpen, History, BarChart3, PlusCircle, LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Sparkles,
+  BookOpen,
+  History,
+  BarChart3,
+  PlusCircle,
+  LogOut,
+  ShieldCheck,
+  User as UserIcon,
+  Menu,
+  X,
+} from "lucide-react";
 
 export const Navbar = ({
   user,
@@ -9,42 +20,56 @@ export const Navbar = ({
   onSignOut,
   entriesCount,
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <header id="main-navbar" className="sticky top-0 z-40 bg-[#fdfbf7]/90 backdrop-blur-md border-b border-[#e7e2d6]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#342f2b] text-[#fdfbf7] flex items-center justify-center shadow-xs">
-              <Sparkles className="w-5 h-5 text-[#e0b07a]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-serif text-xl font-bold tracking-tight text-[#2d2926]">
-                  AI Journal
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-[#f5efe4] text-[#825c34] border border-[#e8dbcc] px-2 py-0.5 rounded-full">
-                  <Sparkles className="w-2.5 h-2.5" /> Gemini 3.6 Flash
-                </span>
+    <header id="main-navbar" className="sticky top-0 z-40 bg-white border-b border-black text-black">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
+          {/* Left Side: Brand & Mobile Menu Toggle */}
+          <div className="flex items-center gap-2">
+            {user && (
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="sm:hidden p-1.5 text-black hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-300"
+                aria-label="Toggle Navigation"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            )}
+
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-black text-white flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <p className="text-xs text-[#7d756c] hidden md:block">
-                Reflective thinking & structured cognition
-              </p>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-base sm:text-lg tracking-tight text-black">
+                    AI Journal
+                  </span>
+                  <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-mono bg-neutral-100 text-black border border-neutral-300 px-1.5 py-0.5 rounded">
+                    Gemini 3.6 Flash
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
+          {/* Desktop Navigation */}
           {user && (
-            <nav className="flex items-center gap-1 bg-[#f3eee4] p-1 rounded-xl border border-[#e5dfd2]">
+            <nav className="hidden sm:flex items-center gap-1 bg-neutral-100 p-1 rounded-lg border border-neutral-300">
               <button
                 id="nav-tab-editor"
                 type="button"
                 onClick={() => onTabChange("editor")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeTab === "editor"
-                    ? "bg-[#ffffff] text-[#2d2926] shadow-xs"
-                    : "text-[#696157] hover:text-[#2d2926] hover:bg-[#e9e3d7]/60"
+                    ? "bg-black text-white"
+                    : "text-neutral-700 hover:text-black hover:bg-neutral-200"
                 }`}
               >
-                <BookOpen className="w-4 h-4 text-[#5c544b]" />
+                <BookOpen className="w-3.5 h-3.5" />
                 <span>Reflect</span>
               </button>
 
@@ -52,16 +77,18 @@ export const Navbar = ({
                 id="nav-tab-history"
                 type="button"
                 onClick={() => onTabChange("history")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeTab === "history"
-                    ? "bg-[#ffffff] text-[#2d2926] shadow-xs"
-                    : "text-[#696157] hover:text-[#2d2926] hover:bg-[#e9e3d7]/60"
+                    ? "bg-black text-white"
+                    : "text-neutral-700 hover:text-black hover:bg-neutral-200"
                 }`}
               >
-                <History className="w-4 h-4 text-[#5c544b]" />
+                <History className="w-3.5 h-3.5" />
                 <span>History</span>
                 {entriesCount > 0 && (
-                  <span className="text-xs bg-[#e5ded1] text-[#423c34] font-semibold px-1.5 py-0.2 rounded-full">
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    activeTab === "history" ? "bg-neutral-800 text-white" : "bg-neutral-200 text-black"
+                  }`}>
                     {entriesCount}
                   </span>
                 )}
@@ -71,50 +98,52 @@ export const Navbar = ({
                 id="nav-tab-insights"
                 type="button"
                 onClick={() => onTabChange("insights")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   activeTab === "insights"
-                    ? "bg-[#ffffff] text-[#2d2926] shadow-xs"
-                    : "text-[#696157] hover:text-[#2d2926] hover:bg-[#e9e3d7]/60"
+                    ? "bg-black text-white"
+                    : "text-neutral-700 hover:text-black hover:bg-neutral-200"
                 }`}
               >
-                <BarChart3 className="w-4 h-4 text-[#5c544b]" />
-                <span className="hidden sm:inline">Insights</span>
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Insights</span>
               </button>
             </nav>
           )}
 
-          <div className="flex items-center gap-2.5">
+          {/* Right Side: User Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user ? (
               <>
                 <button
                   id="btn-new-entry-header"
                   type="button"
                   onClick={onNewEntry}
-                  className="hidden sm:flex items-center gap-2 bg-[#342f2b] text-[#fdfbf7] hover:bg-[#25211e] px-3.5 py-2 rounded-xl text-sm font-medium shadow-xs transition-colors"
+                  title="New Reflection"
+                  className="flex items-center gap-1.5 bg-black text-white hover:bg-neutral-800 px-2.5 py-1.5 sm:px-3 rounded-lg text-xs font-medium transition-colors"
                 >
-                  <PlusCircle className="w-4 h-4 text-[#e0b07a]" />
-                  <span>New Reflection</span>
+                  <PlusCircle className="w-4 h-4 text-white shrink-0" />
+                  <span className="hidden xs:inline">New</span>
                 </button>
 
-                <div className="flex items-center gap-2 pl-2 border-l border-[#e7e2d6]">
-                  <div className="flex items-center gap-2 bg-[#f5f1e8] border border-[#e5dfd2] px-2.5 py-1.5 rounded-xl text-xs text-[#524b42]">
+                <div className="flex items-center gap-1.5 pl-1.5 border-l border-neutral-300">
+                  <div className="flex items-center gap-1.5 bg-neutral-100 border border-neutral-300 p-1 sm:px-2 sm:py-1 rounded-lg text-xs text-black">
                     {user.photoURL ? (
                       <img
                         src={user.photoURL}
                         alt="Avatar"
-                        className="w-5 h-5 rounded-full object-cover border border-[#d6cebf]"
+                        className="w-5 h-5 rounded-full object-cover border border-neutral-300 shrink-0"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-[#dfd7c8] text-[#524b42] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-neutral-200 text-black flex items-center justify-center shrink-0">
                         <UserIcon className="w-3 h-3" />
                       </div>
                     )}
-                    <span className="font-medium max-w-[110px] truncate hidden md:inline">
+                    <span className="font-medium max-w-[100px] truncate hidden md:inline">
                       {user.displayName || user.email || "Explorer"}
                     </span>
                     {user.isAnonymous && (
-                      <span className="text-[10px] bg-[#eedfcb] text-[#7a4e1d] font-semibold px-1 rounded">
+                      <span className="text-[10px] bg-neutral-200 text-black font-mono px-1 rounded">
                         Guest
                       </span>
                     )}
@@ -125,21 +154,143 @@ export const Navbar = ({
                     type="button"
                     onClick={onSignOut}
                     title="Sign Out"
-                    className="p-2 text-[#7d756c] hover:text-[#9e3a2f] hover:bg-[#faeae7] rounded-xl transition-colors"
+                    className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-1.5 text-xs text-[#5f6954] font-medium bg-[#eef3eb] border border-[#d3ddce] px-2.5 py-1 rounded-full">
-                <ShieldCheck className="w-4 h-4 text-[#4f5c44]" />
-                <span>Isolated Firestore Auth</span>
+              <div className="flex items-center gap-1 text-[11px] font-medium text-black bg-neutral-100 border border-neutral-300 px-2 py-1 rounded-lg">
+                <ShieldCheck className="w-3.5 h-3.5 text-black shrink-0" />
+                <span className="hidden sm:inline">Isolated Auth</span>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Mobile Slide-out Drawer & Overlay */}
+      {user && (
+        <>
+          {/* Backdrop Overlay */}
+          <div
+            className={`fixed inset-0 bg-black/50 z-40 transition-opacity sm:hidden ${
+              isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Side Panel */}
+          <aside
+            className={`fixed top-0 left-0 bottom-0 w-64 bg-white z-50 border-r border-black p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out sm:hidden ${
+              isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-black text-white flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-bold text-sm tracking-tight text-black">
+                    AI Journal
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1 text-neutral-500 hover:text-black rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange("editor");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    activeTab === "editor"
+                      ? "bg-black text-white"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Reflect</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange("history");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    activeTab === "history"
+                      ? "bg-black text-white"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <History className="w-4 h-4" />
+                    <span>History</span>
+                  </div>
+                  {entriesCount > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      activeTab === "history" ? "bg-neutral-800 text-white" : "bg-neutral-200 text-black"
+                    }`}>
+                      {entriesCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange("insights");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    activeTab === "insights"
+                      ? "bg-black text-white"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Insights</span>
+                  </div>
+                </button>
+              </nav>
+            </div>
+
+            <div className="pt-4 border-t border-neutral-200 space-y-3">
+              <div className="flex items-center gap-2 px-2 text-xs text-neutral-600">
+                <span className="truncate">
+                  {user.displayName || user.email || "Explorer"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onSignOut();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-neutral-700 hover:bg-neutral-100 hover:text-black transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
     </header>
   );
 };

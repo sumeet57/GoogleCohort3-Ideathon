@@ -27,51 +27,55 @@ import { saveJournalEntry, auth } from "../lib/firebase";
 
 const INSPIRATION_PROMPTS = [
   {
-    title: "Daily Cognitive Unload",
+    title: "Daily Unload 🎈",
     prompt: "What is occupying the most mental bandwidth for me today, and why does it feel heavy?",
     mode: "reflect",
+    accent: "hover:border-amber-400 hover:bg-amber-50/50",
   },
   {
-    title: "Decision Crossroads",
+    title: "Decision Crossroads ⚡",
     prompt: "I am trying to decide between two options. Help me examine the hidden assumptions and trade-offs.",
     mode: "brainstorm",
+    accent: "hover:border-indigo-400 hover:bg-indigo-50/50",
   },
   {
-    title: "Small Wins & Gratitude",
+    title: "Small Breakthrough ✨",
     prompt: "Here is a small breakthrough or moment of gratitude I experienced today. Help me anchor it.",
     mode: "deepen",
+    accent: "hover:border-rose-400 hover:bg-rose-50/50",
   },
   {
-    title: "Creative Block / Stuck State",
+    title: "Unblock Project 🚀",
     prompt: "I feel stuck on my current project. Let's brainstorm 3 unconventional angles to reignite momentum.",
     mode: "brainstorm",
+    accent: "hover:border-emerald-400 hover:bg-emerald-50/50",
   },
 ];
 
 const MODES = [
   {
     id: "reflect",
-    label: "Reflect & Question",
-    icon: <HelpCircle className="w-3.5 h-3.5" />,
-    desc: "Unpack cognitive patterns and explore perspective-shifting questions.",
+    label: "Reflect",
+    icon: <HelpCircle className="w-3.5 h-3.5 text-amber-700" />,
+    badgeClass: "bg-amber-300 text-slate-900 border-slate-900",
   },
   {
     id: "brainstorm",
-    label: "Brainstorm Ideas",
-    icon: <Lightbulb className="w-3.5 h-3.5" />,
-    desc: "Generate divergent solutions, unblock creativity, and explore options.",
+    label: "Brainstorm",
+    icon: <Lightbulb className="w-3.5 h-3.5 text-indigo-700" />,
+    badgeClass: "bg-indigo-300 text-slate-900 border-slate-900",
   },
   {
     id: "deepen",
-    label: "Deep Exploration",
-    icon: <Compass className="w-3.5 h-3.5" />,
-    desc: "Examine core values, root motives, and emotional undercurrents.",
+    label: "Deepen",
+    icon: <Compass className="w-3.5 h-3.5 text-rose-700" />,
+    badgeClass: "bg-rose-300 text-slate-900 border-slate-900",
   },
   {
     id: "summarize",
     label: "Synthesis",
-    icon: <FileText className="w-3.5 h-3.5" />,
-    desc: "Distill the session into structured takeaways and action items.",
+    icon: <FileText className="w-3.5 h-3.5 text-emerald-700" />,
+    badgeClass: "bg-emerald-300 text-slate-900 border-slate-900",
   },
 ];
 
@@ -277,234 +281,223 @@ export const JournalEditor = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-const handleAttachLocation = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser.");
-    return;
-  }
-
-  setIsLocating(true);
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      try {
-        // 1. Get the current user's Firebase ID Token
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          throw new Error("User must be authenticated to pin location.");
-        }
-        const token = await currentUser.getIdToken();
-
-        // 2. Pass the Bearer token in headers
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "Geocoding failed");
-        }
-
-        const geoData = await res.json();
-
-        const updatedLocation = {
-          latitude: lat,
-          longitude: lng,
-          address: geoData.address || "",
-          placeName: geoData.placeName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-        };
-
-        const updatedEntry = { ...entry, location: updatedLocation, updatedAt: Date.now() };
-        setEntry(updatedEntry);
-        await persistEntry(updatedEntry);
-      } catch (err) {
-        console.error("Location error:", err);
-        setErrorMessage(err.message || "Failed to retrieve location details.");
-      } finally {
-        setIsLocating(false);
-      }
-    },
-    (err) => {
-      setIsLocating(false);
-      alert("Unable to retrieve location from browser. Please allow location permissions.");
+  const handleAttachLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
     }
-  );
-};
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        try {
+          const currentUser = auth.currentUser;
+          if (!currentUser) {
+            throw new Error("User must be authenticated to pin location.");
+          }
+          const token = await currentUser.getIdToken();
+
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/location/geocode?lat=${lat}&lng=${lng}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || "Geocoding failed");
+          }
+
+          const geoData = await res.json();
+
+          const updatedLocation = {
+            latitude: lat,
+            longitude: lng,
+            address: geoData.address || "",
+            placeName: geoData.placeName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+          };
+
+          const updatedEntry = { ...entry, location: updatedLocation, updatedAt: Date.now() };
+          setEntry(updatedEntry);
+          await persistEntry(updatedEntry);
+        } catch (err) {
+          console.error("Location error:", err);
+          setErrorMessage(err.message || "Failed to retrieve location details.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        setIsLocating(false);
+        alert("Unable to retrieve location from browser. Please allow location permissions.");
+      }
+    );
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-      {/* Header Card */}
-      <div id="journal-editor-header" className="bg-[#ffffff] rounded-2xl border border-[#e5dfd2] p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <input
-              id="entry-title-input"
-              ref={titleInputRef}
-              type="text"
-              value={entry.title}
-              onChange={(e) => {
-                const val = e.target.value;
-                setEntry((prev) => ({ ...prev, title: val, updatedAt: Date.now() }));
-                setSaveStatus("unsaved");
-              }}
-              onBlur={() => persistEntry(entry)}
-              placeholder="Title of this reflection..."
-              className="w-full font-serif text-xl sm:text-2xl font-bold text-[#2d2926] bg-transparent border-b border-transparent hover:border-[#ded7c7] focus:border-[#a7ad9b] focus:outline-hidden py-1 transition-colors"
-            />
-            <div className="flex items-center gap-3 text-xs text-[#7d756c] mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-[#a1998e]" />
+    <div className="max-w-4xl mx-auto px-2 sm:px-6 py-3 sm:py-8 space-y-4 sm:space-y-6 text-slate-800 selection:bg-amber-200">
+      {/* Header Panel */}
+      <div id="journal-editor-header" className="bg-white rounded-2xl border-2 border-slate-900 p-3.5 sm:p-5 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] sm:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-3 sm:space-y-4">
+        <div className="flex flex-col gap-2.5">
+          <input
+            id="entry-title-input"
+            ref={titleInputRef}
+            type="text"
+            value={entry.title}
+            onChange={(e) => {
+              const val = e.target.value;
+              setEntry((prev) => ({ ...prev, title: val, updatedAt: Date.now() }));
+              setSaveStatus("unsaved");
+            }}
+            onBlur={() => persistEntry(entry)}
+            placeholder="Title of this reflection..."
+            className="w-full text-lg sm:text-2xl font-bold text-slate-900 bg-transparent border-b-2 border-slate-200 focus:border-amber-400 focus:outline-none pb-1 transition-colors tracking-tight"
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t-2 border-slate-100">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 flex-wrap">
+              <span className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
                 {new Date(entry.createdAt).toLocaleDateString("en-US", {
-                  weekday: "short",
                   month: "short",
                   day: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </span>
-              <span>•</span>
-              <span>{entry.wordCount} words</span>
-              <span>•</span>
-              
-              {/* Location Pin Badge */}
+              <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                {entry.wordCount} words
+              </span>
+
               {entry.location ? (
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${entry.location.latitude},${entry.location.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#524b42] bg-[#f5f1e8] hover:bg-[#ebdcc8] px-2.5 py-0.5 rounded-lg border border-[#e5dfd2] transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-slate-800 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded-lg border border-slate-900 transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#b86e42]" />
-                  <span>{entry.location.placeName || "Pinned Location"}</span>
+                  <MapPin className="w-3 h-3 text-amber-600" />
+                  <span className="max-w-[110px] sm:max-w-[130px] truncate font-semibold">{entry.location.placeName || "Pinned"}</span>
                 </a>
               ) : (
                 <button
                   type="button"
                   onClick={handleAttachLocation}
                   disabled={isLocating}
-                  className="inline-flex items-center gap-1 text-xs text-[#7d756c] hover:text-[#2d2926] bg-[#faf7f0] px-2.5 py-0.5 rounded-lg border border-[#e5dfd2] transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 transition-all hover:border-slate-900"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#a1998e]" />
-                  <span>{isLocating ? "Detecting..." : "Pin Location"}</span>
+                  <MapPin className="w-3 h-3 text-slate-400" />
+                  <span>{isLocating ? "Locating..." : "Pin location"}</span>
                 </button>
               )}
 
-              <span>•</span>
               <span
                 id="save-status-indicator"
-                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-medium text-[11px] ${
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono text-[10px] uppercase font-extrabold border-2 ${
                   saveStatus === "saved"
-                    ? "bg-[#eef3eb] text-[#4f5c44] border border-[#d3ddce]"
+                    ? "bg-emerald-100 text-emerald-900 border-emerald-900"
                     : saveStatus === "saving"
-                    ? "bg-[#fbf2ea] text-[#9c5a31] border border-[#ebd2bf] animate-pulse"
+                    ? "bg-amber-300 text-slate-900 border-slate-900 animate-pulse"
                     : saveStatus === "unsaved"
-                    ? "bg-[#f3ede1] text-[#696157] border border-[#e2d9c9]"
-                    : "bg-[#fbeae7] text-[#9e3a2f] border border-[#ecc9c4]"
+                    ? "bg-slate-100 text-slate-700 border-slate-300"
+                    : "bg-rose-100 text-rose-900 border-rose-900"
                 }`}
               >
-                {saveStatus === "saved" && <Check className="w-3 h-3 text-[#5b6851]" />}
-                {saveStatus === "saving" && <RotateCcw className="w-3 h-3 animate-spin text-[#b86e42]" />}
-                {saveStatus === "unsaved" && <Save className="w-3 h-3 text-[#7d756c]" />}
-                {saveStatus === "error" && <AlertCircle className="w-3 h-3 text-[#9e3a2f]" />}
-                {saveStatus === "saved"
-                  ? "Saved to Firestore"
-                  : saveStatus === "saving"
-                  ? "Persisting..."
-                  : saveStatus === "unsaved"
-                  ? "Unsaved Buffer"
-                  : "Sync Error"}
+                {saveStatus === "saved" && <Check className="w-3 h-3" />}
+                {saveStatus === "saving" && <RotateCcw className="w-3 h-3 animate-spin" />}
+                {saveStatus === "unsaved" && <Save className="w-3 h-3" />}
+                {saveStatus === "error" && <AlertCircle className="w-3 h-3" />}
+                {saveStatus}
               </span>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              id="btn-toggle-favorite"
-              type="button"
-              onClick={handleToggleFavorite}
-              title={entry.isFavorite ? "Remove from favorites" : "Add to favorites"}
-              className={`p-2.5 rounded-xl border transition-colors ${
-                entry.isFavorite
-                  ? "bg-[#fbf4ea] border-[#eddac2] text-[#c48b5b] hover:bg-[#f6ebd8]"
-                  : "bg-[#faf7f0] border-[#e5dfd2] text-[#a1998e] hover:text-[#4a443f] hover:bg-[#f3ede1]"
-              }`}
-            >
-              <Star className={`w-4 h-4 ${entry.isFavorite ? "fill-[#c48b5b]" : ""}`} />
-            </button>
+            <div className="flex items-center gap-1.5 self-end sm:self-auto">
+              <button
+                id="btn-toggle-favorite"
+                type="button"
+                onClick={handleToggleFavorite}
+                title={entry.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                className={`p-2 rounded-xl border-2 border-slate-900 transition-all ${
+                  entry.isFavorite
+                    ? "bg-amber-300 text-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                    : "bg-white text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                }`}
+              >
+                <Star className={`w-4 h-4 ${entry.isFavorite ? "fill-slate-900 text-slate-900" : ""}`} />
+              </button>
 
-            <button
-              id="btn-generate-synthesis"
-              type="button"
-              disabled={isSummarizing || isGenerating}
-              onClick={handleGenerateSynthesis}
-              className="flex items-center gap-2 bg-[#f5eee3] hover:bg-[#ebdcc8] text-[#634526] border border-[#ded0bb] px-3.5 py-2 rounded-xl text-xs font-semibold shadow-2xs transition-all disabled:opacity-50"
-            >
-              <BrainCircuit className={`w-3.5 h-3.5 text-[#8a5d32] ${isSummarizing ? "animate-spin" : ""}`} />
-              <span>{isSummarizing ? "Synthesizing..." : "Synthesize Reflection"}</span>
-            </button>
+              <button
+                id="btn-generate-synthesis"
+                type="button"
+                disabled={isSummarizing || isGenerating}
+                onClick={handleGenerateSynthesis}
+                className="flex items-center gap-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-950 border-2 border-slate-900 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] disabled:opacity-50"
+              >
+                <BrainCircuit className={`w-3.5 h-3.5 text-indigo-600 ${isSummarizing ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">{isSummarizing ? "Synthesizing..." : "Synthesize"}</span>
+              </button>
 
-            <button
-              id="btn-manual-save"
-              type="button"
-              onClick={handleSaveThought}
-              title="Save now"
-              className="p-2.5 bg-[#342f2b] hover:bg-[#25211e] text-[#fdfbf7] rounded-xl shadow-2xs transition-colors"
-            >
-              <Save className="w-4 h-4" />
-            </button>
+              <button
+                id="btn-manual-save"
+                type="button"
+                onClick={handleSaveThought}
+                title="Save now"
+                className="p-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl border-2 border-slate-900 transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
         {(entry.mood || (entry.tags && entry.tags.length > 0)) && (
-          <div className="flex items-center gap-2 pt-2 border-t border-[#f0eae0] flex-wrap">
+          <div className="flex items-center gap-1.5 pt-1.5 border-t-2 border-slate-100 flex-wrap">
             {entry.mood && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium bg-[#edf2ea] text-[#48563d] px-2.5 py-1 rounded-lg border border-[#cfdacb]">
-                <Smile className="w-3.5 h-3.5 text-[#5b6851]" />
+              <span className="inline-flex items-center gap-1 text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300">
+                <Smile className="w-3.5 h-3.5 text-amber-600" />
                 <span>Mood: {entry.mood}</span>
               </span>
             )}
             {entry.tags?.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 text-xs text-[#5c544b] bg-[#f5f1e8] px-2.5 py-0.5 rounded-lg border border-[#e5dfd2]"
+                className="inline-flex items-center gap-1 text-xs font-mono text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200"
               >
-                <Tag className="w-3 h-3 text-[#8f877d]" />
-                <span>{tag}</span>
+                <Tag className="w-3 h-3 text-slate-400" />
+                <span>#{tag}</span>
               </span>
             ))}
           </div>
         )}
       </div>
 
-      {/* Error Banner */}
       {errorMessage && (
-        <div id="editor-error-banner" className="bg-[#fbeae7] border border-[#ecc9c4] text-[#852a20] p-4 rounded-2xl text-xs flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-[#9e3a2f] shrink-0" />
+        <div id="editor-error-banner" className="bg-rose-100 border-2 border-slate-900 text-rose-950 p-3 sm:p-3.5 rounded-2xl text-xs flex items-center justify-between gap-3 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+          <div className="flex items-center gap-2 font-medium">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMessage}</span>
           </div>
           <button
             id="btn-retry-save"
             type="button"
             onClick={() => persistEntry(entry)}
-            className="px-2.5 py-1 bg-[#f4d1cb] hover:bg-[#ecc0b7] text-[#6b1e16] rounded-lg font-medium transition-colors"
+            className="px-3 py-1 bg-white border border-slate-900 text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] shrink-0"
           >
-            Retry Save
+            Retry
           </button>
         </div>
       )}
 
-      {/* Primary Thought Area */}
-      <div className="bg-[#ffffff] rounded-2xl border border-[#e5dfd2] p-5 sm:p-6 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-[#7d756c] font-mono">
+      {/* Raw Entry TextArea Card */}
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-3 sm:p-5 space-y-2 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] sm:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs font-extrabold uppercase tracking-wider text-slate-900 font-mono flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block border border-slate-900"></span>
             Raw Journal Entry & Thoughts
           </label>
-          <span className="text-[11px] text-[#a1998e]">Write freely — Gemini will analyze and converse below</span>
         </div>
         <textarea
           id="initial-thought-textarea"
@@ -512,53 +505,49 @@ const handleAttachLocation = () => {
           onChange={(e) => handleThoughtChange(e.target.value)}
           onBlur={handleSaveThought}
           placeholder="Unload whatever is on your mind today: events, emotional state, dilemmas, creative ideas, or questions you are grappling with..."
-          rows={5}
-          className="w-full bg-[#faf7f0] hover:bg-[#f6f2e9] focus:bg-[#ffffff] border border-[#ded7c7] rounded-xl p-4 text-[#2d2926] text-sm leading-relaxed placeholder:text-[#a1998e] focus:outline-hidden focus:ring-2 focus:ring-[#342f2b] transition-all resize-y font-serif"
+          rows={4}
+          className="w-full bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-xl p-3 text-slate-900 text-xs sm:text-sm leading-relaxed placeholder:text-slate-400 focus:outline-none transition-all resize-y font-medium"
         />
       </div>
 
-      {/* AI Synthesis Card */}
       {entry.synthesis && (
-        <div id="ai-synthesis-card" className="bg-[#fbf7ee] border border-[#e7dac5] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
-          <div className="flex items-center justify-between">
+        <div id="ai-synthesis-card" className="bg-amber-50/60 border-2 border-slate-900 rounded-2xl p-3.5 sm:p-5 space-y-3 sm:space-y-4 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] sm:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+          <div className="flex items-center justify-between border-b-2 border-slate-900 pb-2.5">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#f0e3ce] text-[#6b4724] flex items-center justify-center">
-                <BrainCircuit className="w-4 h-4 text-[#825c34]" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-300 border-2 border-slate-900 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] shrink-0">
+                <BrainCircuit className="w-4 h-4 text-slate-900" />
               </div>
-              <div>
-                <h3 className="font-serif font-bold text-[#2d2926] text-base sm:text-lg">
-                  Executive Cognitive Synthesis
-                </h3>
-                <p className="text-xs text-[#7d756c]">Gemini structured breakdown</p>
-              </div>
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-base tracking-tight">
+                Executive Cognitive Synthesis
+              </h3>
             </div>
             <button
               type="button"
               onClick={() => handleCopy("synthesis", `${entry.synthesis?.summary}\n\nKey Insights:\n${entry.synthesis?.insights?.join("\n")}`)}
-              className="text-xs text-[#7d756c] hover:text-[#2d2926] flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#f3e7d4] transition-colors"
+              className="text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition-all shrink-0"
             >
-              {copiedId === "synthesis" ? <Check className="w-3.5 h-3.5 text-[#5b6851]" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedId === "synthesis" ? "Copied" : "Copy Synthesis"}</span>
+              {copiedId === "synthesis" ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedId === "synthesis" ? "Copied" : "Copy"}</span>
             </button>
           </div>
 
-          <div className="bg-[#ffffff]/90 rounded-xl p-4 border border-[#e8dcce] text-sm text-[#4a443f] leading-relaxed">
-            <p className="font-medium text-[#7d4f24] mb-1 text-xs uppercase tracking-wider font-mono">Summary</p>
+          <div className="bg-white rounded-xl p-3 sm:p-3.5 border-2 border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
+            <p className="font-extrabold text-amber-800 mb-1 text-[10px] uppercase tracking-wider font-mono">Summary</p>
             {entry.synthesis.summary}
           </div>
 
           {entry.synthesis.insights && entry.synthesis.insights.length > 0 && (
-            <div className="space-y-2">
-              <p className="font-medium text-[#7d4f24] text-xs uppercase tracking-wider font-mono flex items-center gap-1.5">
-                <Lightbulb className="w-3.5 h-3.5 text-[#a86a34]" /> Key Insights & Realizations
+            <div className="space-y-1.5 sm:space-y-2">
+              <p className="font-extrabold text-slate-900 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Key Insights & Realizations
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {entry.synthesis.insights.map((insight, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#ffffff]/90 rounded-xl p-3 border border-[#e8dcce] text-xs text-[#524b42] leading-relaxed flex items-start gap-2"
+                    className="bg-white rounded-xl p-3 border-2 border-slate-200 text-xs text-slate-800 leading-relaxed font-medium flex items-start gap-2"
                   >
-                    <span className="font-bold text-[#b86e42] text-xs mt-0.5">•</span>
+                    <span className="font-bold text-amber-500 text-sm leading-none">•</span>
                     <span>{insight}</span>
                   </div>
                 ))}
@@ -567,9 +556,9 @@ const handleAttachLocation = () => {
           )}
 
           {entry.synthesis.actionItems && entry.synthesis.actionItems.length > 0 && (
-            <div className="space-y-2">
-              <p className="font-medium text-[#7d4f24] text-xs uppercase tracking-wider font-mono flex items-center gap-1.5">
-                <ListTodo className="w-3.5 h-3.5 text-[#a86a34]" /> Concrete Action Items
+            <div className="space-y-1.5 sm:space-y-2">
+              <p className="font-extrabold text-slate-900 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <ListTodo className="w-3.5 h-3.5 text-indigo-500" /> Concrete Action Items
               </p>
               <div className="space-y-1.5">
                 {entry.synthesis.actionItems.map((action, idx) => {
@@ -578,15 +567,15 @@ const handleAttachLocation = () => {
                     <div
                       key={idx}
                       onClick={() => setCompletedActionItems((prev) => ({ ...prev, [idx]: !prev[idx] }))}
-                      className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer select-none text-xs ${
+                      className={`flex items-start gap-2.5 p-2.5 sm:p-3 rounded-xl border-2 transition-all cursor-pointer select-none text-xs font-semibold ${
                         isDone
-                          ? "bg-[#edf3eb] border-[#cfdacb] text-[#55634b] line-through opacity-70"
-                          : "bg-[#ffffff] border-[#e8dcce] text-[#342f2b] hover:border-[#cfbea4]"
+                          ? "bg-slate-100 border-slate-300 text-slate-400 line-through"
+                          : "bg-white border-slate-900 text-slate-800 hover:bg-slate-50 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
                       }`}
                     >
                       <CheckCircle2
                         className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${
-                          isDone ? "text-[#5b6851]" : "text-[#c2baa9]"
+                          isDone ? "text-slate-400" : "text-emerald-500"
                         }`}
                       />
                       <span className="leading-relaxed">{action}</span>
@@ -599,48 +588,47 @@ const handleAttachLocation = () => {
         </div>
       )}
 
-      {/* Multi-Turn Conversational Stream */}
-      <div id="reflection-conversation-stream" className="space-y-4">
-        <div className="flex items-center justify-between pt-2">
-          <h2 className="text-sm font-bold text-[#342f2b] uppercase tracking-wider font-mono flex items-center gap-2">
-            <BrainCircuit className="w-4 h-4 text-[#5c544b]" />
-            <span>Multi-Turn Reflection Dialogue</span>
+      {/* Multi-Turn Dialogue Stream */}
+      <div id="reflection-conversation-stream" className="space-y-2.5 sm:space-y-4">
+        <div className="flex items-center justify-between border-b-2 border-slate-900 pb-1.5">
+          <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider font-mono flex items-center gap-1.5">
+            <BrainCircuit className="w-4 h-4 text-indigo-500" />
+            <span>Multi-Turn Dialogue</span>
           </h2>
-          <span className="text-xs text-[#7d756c]">
+          <span className="text-xs font-bold font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
             {entry.messages.length} {entry.messages.length === 1 ? "turn" : "turns"}
           </span>
         </div>
 
-        {/* Empty State Prompts */}
         {entry.messages.length === 0 && (
-          <div className="bg-[#ffffff] rounded-2xl border border-[#e5dfd2] p-6 shadow-xs text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5eee3] text-[#7d562f] mb-1">
-              <Sparkles className="w-5 h-5 text-[#b8763f]" />
+          <div className="bg-white rounded-2xl border-2 border-slate-900 p-4 sm:p-6 text-center space-y-3 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+            <div className="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-amber-300 border-2 border-slate-900 text-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="font-serif font-semibold text-[#2d2926] text-base">
+              <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm">
                 Start a Dialogue with Gemini
               </h3>
-              <p className="text-xs text-[#7d756c] max-w-md mx-auto mt-1">
-                Ask for a reflection on what you wrote above, brainstorm solutions, or select a cognitive starter:
+              <p className="text-xs text-slate-600 max-w-md mx-auto mt-0.5 font-medium leading-relaxed">
+                Select a starter to begin exploring your reflection:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-1">
               {INSPIRATION_PROMPTS.map((starter, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleSendPrompt(starter.prompt, starter.mode)}
-                  className="p-3.5 bg-[#faf7f0] hover:bg-[#f3ede1] border border-[#e5dfd2] rounded-xl text-xs transition-all group flex flex-col justify-between gap-2"
+                  className={`p-3 bg-slate-50 hover:bg-white border-2 border-slate-200 hover:border-slate-900 rounded-xl text-xs transition-all group flex flex-col justify-between gap-1.5 ${starter.accent}`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-semibold text-[#342f2b] group-hover:text-[#1e1b18]">
+                    <span className="font-extrabold text-slate-900 text-xs">
                       {starter.title}
                     </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-[#8f877d] group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 transition-all" />
                   </div>
-                  <p className="text-[#696157] text-[11px] leading-relaxed line-clamp-2">
+                  <p className="text-slate-600 text-[11px] leading-relaxed line-clamp-2 font-medium">
                     "{starter.prompt}"
                   </p>
                 </button>
@@ -649,26 +637,20 @@ const handleAttachLocation = () => {
           </div>
         )}
 
-        {/* Chat Bubbles */}
         {entry.messages.map((msg) => {
           const isUser = msg.role === "user";
           return (
             <div
               key={msg.id}
-              className={`flex flex-col ${isUser ? "items-end" : "items-start"} space-y-1.5`}
+              className={`flex flex-col ${isUser ? "items-end" : "items-start"} space-y-1`}
             >
-              <div className="flex items-center gap-2 px-1 text-[11px] text-[#7d756c]">
-                <span className="font-medium">
-                  {isUser ? "You" : "Gemini Reflection Partner"}
+              <div className="flex items-center gap-1.5 px-1 text-[10px] sm:text-xs font-mono font-bold text-slate-500">
+                <span className="text-slate-900">
+                  {isUser ? "You" : "Gemini Partner"}
                 </span>
                 {msg.mode && (
-                  <span className="bg-[#f3eee4] text-[#524b42] px-1.5 py-0.2 rounded font-mono text-[10px]">
+                  <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300">
                     {msg.mode}
-                  </span>
-                )}
-                {msg.modelUsed && (
-                  <span className="text-[10px] text-[#7d4f24] bg-[#fbf2ea] px-1.5 py-0.2 rounded border border-[#ebd2bf] font-mono">
-                    {msg.modelUsed}
                   </span>
                 )}
                 <span>
@@ -677,27 +659,27 @@ const handleAttachLocation = () => {
               </div>
 
               <div
-                className={`max-w-[90%] sm:max-w-[82%] rounded-2xl p-4 sm:p-5 text-sm shadow-xs ${
+                className={`max-w-[95%] sm:max-w-[85%] rounded-2xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] ${
                   isUser
-                    ? "bg-[#342f2b] text-[#fdfbf7] rounded-br-xs"
-                    : "bg-[#ffffff] text-[#3b352f] border border-[#e5dfd2] rounded-bl-xs leading-relaxed"
+                    ? "bg-slate-900 text-white rounded-br-none"
+                    : "bg-white text-slate-800 rounded-bl-none font-medium"
                 }`}
               >
                 {isUser ? (
-                  <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed font-medium">{msg.text}</p>
                 ) : (
-                  <div className="space-y-3 text-[#3b352f]">
+                  <div className="space-y-2 text-slate-800">
                     <Markdown>{msg.text}</Markdown>
-                    <div className="pt-2 border-t border-[#f0eae0] flex items-center justify-end">
+                    <div className="pt-1.5 border-t border-slate-200 flex items-center justify-end">
                       <button
                         type="button"
                         onClick={() => handleCopy(msg.id, msg.text)}
-                        className="text-[11px] text-[#8f877d] hover:text-[#2d2926] flex items-center gap-1 transition-colors"
+                        className="text-[11px] font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors"
                       >
                         {copiedId === msg.id ? (
-                          <Check className="w-3 h-3 text-[#5b6851]" />
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
                         ) : (
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-3.5 h-3.5" />
                         )}
                         <span>{copiedId === msg.id ? "Copied" : "Copy"}</span>
                       </button>
@@ -709,38 +691,32 @@ const handleAttachLocation = () => {
           );
         })}
 
-        {/* Loading Indicator */}
         {isGenerating && (
-          <div className="flex items-start gap-3 bg-[#ffffff] border border-[#e5dfd2] rounded-2xl p-4 shadow-xs max-w-md animate-pulse">
-            <div className="w-8 h-8 rounded-xl bg-[#f5eee3] flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4 text-[#b8763f] animate-spin" />
+          <div className="flex items-center gap-2.5 bg-white border-2 border-slate-900 rounded-2xl p-2.5 sm:p-3 max-w-xs shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+            <div className="w-6 h-6 rounded-lg bg-amber-300 border border-slate-900 flex items-center justify-center shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-slate-900 animate-spin" />
             </div>
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-[#2d2926]">
-                Gemini is contemplating your thoughts...
-              </p>
-              <p className="text-[11px] text-[#7d756c]">
-                Generating structured reflection with {activeMode} mode.
-              </p>
-            </div>
+            <p className="text-xs font-bold text-slate-900">
+              Gemini is reflecting...
+            </p>
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Prompt Bar & Mode Switcher */}
-      <div id="prompt-interaction-bar" className="sticky bottom-4 z-30 bg-[#fdfbf7]/95 backdrop-blur-md rounded-2xl border border-[#e5dfd2] p-3 sm:p-4 shadow-md space-y-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      {/* Prominent Fixed High-Contrast Prompt Box */}
+      <div id="prompt-interaction-bar" className="sticky bottom-2 sm:bottom-4 z-30 bg-amber-200 border-2 border-slate-900 rounded-2xl p-2.5 sm:p-3.5 space-y-2 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {MODES.map((m) => (
             <button
               key={m.id}
               type="button"
               onClick={() => setActiveMode(m.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap border-2 transition-all ${
                 activeMode === m.id
-                  ? "bg-[#342f2b] text-[#fdfbf7] shadow-xs"
-                  : "bg-[#f3eee4] text-[#696157] hover:text-[#2d2926] hover:bg-[#e9e3d7]"
+                  ? `${m.badgeClass} shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]`
+                  : "bg-white text-slate-700 border-slate-900 hover:bg-slate-50"
               }`}
             >
               {m.icon}
@@ -764,21 +740,21 @@ const handleAttachLocation = () => {
             disabled={isGenerating}
             placeholder={
               activeMode === "reflect"
-                ? "Ask Gemini to reflect on your thoughts, challenge an assumption, or find clarity..."
+                ? "Ask Gemini to reflect on your thoughts..."
                 : activeMode === "brainstorm"
-                ? "Ask for creative options, solutions, or divergent paths..."
+                ? "Ask for creative options, solutions..."
                 : activeMode === "deepen"
-                ? "Ask to explore underlying motives, emotions, or philosophical core..."
-                : "Ask for a concise summary and next steps..."
+                ? "Ask to explore underlying motives..."
+                : "Ask for a concise summary..."
             }
-            className="flex-1 bg-[#ffffff] hover:bg-[#faf7f0] focus:bg-[#ffffff] border border-[#d6cebf] rounded-xl px-4 py-2.5 text-sm text-[#2d2926] placeholder:text-[#a1998e] focus:outline-hidden focus:ring-2 focus:ring-[#342f2b] transition-all"
+            className="flex-1 bg-white border-2 border-slate-900 focus:bg-amber-50 focus:border-slate-900 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 font-bold placeholder:text-slate-500 placeholder:font-normal focus:outline-none transition-all"
           />
 
           <button
             id="btn-submit-prompt"
             type="submit"
             disabled={!promptInput.trim() || isGenerating}
-            className="bg-[#342f2b] hover:bg-[#25211e] text-[#fdfbf7] font-medium px-4 py-2.5 rounded-xl shadow-xs transition-all disabled:opacity-40 flex items-center gap-1.5 shrink-0 text-sm"
+            className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-3.5 sm:px-4 py-2 rounded-xl border-2 border-slate-900 transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-y-0.5 active:shadow-none disabled:opacity-40 flex items-center gap-1.5 shrink-0 text-xs sm:text-sm"
           >
             <span>Send</span>
             <Send className="w-3.5 h-3.5" />

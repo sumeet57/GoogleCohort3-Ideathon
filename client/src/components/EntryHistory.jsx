@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, Star, Trash2, ExternalLink, Download, Calendar, Smile, BookOpen, MessageSquare, Sparkles } from "lucide-react";
+import { Search, Star, Trash2, ExternalLink, Download, Calendar, Smile, BookOpen, MessageSquare, Sparkles, MapPin } from "lucide-react";
 import { deleteJournalEntry, toggleFavoriteEntry } from "../lib/firebase";
 
 export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => {
@@ -33,7 +33,8 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
         const matchesInsights = entry.synthesis?.insights?.some((i) => i.toLowerCase().includes(q));
         const matchesMessages = entry.messages?.some((m) => m.text?.toLowerCase().includes(q));
         const matchesTags = entry.tags?.some((t) => t.toLowerCase().includes(q));
-        return matchesTitle || matchesThought || matchesSummary || matchesInsights || matchesMessages || matchesTags;
+        const matchesLocation = entry.location?.placeName?.toLowerCase().includes(q) || entry.location?.address?.toLowerCase().includes(q);
+        return matchesTitle || matchesThought || matchesSummary || matchesInsights || matchesMessages || matchesTags || matchesLocation;
       }
 
       return true;
@@ -67,6 +68,7 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
     e.stopPropagation();
     let md = `# ${entry.title}\n`;
     md += `*Date: ${new Date(entry.createdAt).toLocaleString()}*\n`;
+    if (entry.location?.placeName) md += `*Location: ${entry.location.placeName}*\n`;
     if (entry.mood) md += `*Mood: ${entry.mood}*\n`;
     if (entry.tags && entry.tags.length > 0) md += `*Tags: ${entry.tags.join(", ")}*\n`;
     md += `\n---\n\n`;
@@ -110,13 +112,13 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-5xl mx-auto px-1.5 sm:px-6 py-2 sm:py-8 space-y-3 sm:space-y-6 text-slate-800 selection:bg-amber-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 pb-2 border-b-2 border-slate-900">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-[#2d2926]">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             Reflection Archives
           </h1>
-          <p className="text-xs text-[#7d756c] mt-1">
+          <p className="text-xs text-slate-600 mt-0.5 font-medium">
             {entries.length} user-isolated entries securely preserved in Cloud Firestore
           </p>
         </div>
@@ -125,40 +127,40 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
           id="btn-history-new-reflection"
           type="button"
           onClick={onNewEntry}
-          className="inline-flex items-center gap-2 bg-[#342f2b] hover:bg-[#25211e] text-[#fdfbf7] text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-extrabold px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl border-2 border-slate-900 transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-y-0.5 active:shadow-none self-stretch sm:self-auto"
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#e5b382]" />
+          <Sparkles className="w-3.5 h-3.5 text-slate-900" />
           <span>New Reflection</span>
         </button>
       </div>
 
-      <div className="bg-[#ffffff] rounded-2xl border border-[#e5dfd2] p-4 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="bg-white rounded-2xl border-2 border-slate-900 p-2.5 sm:p-4 space-y-2 sm:space-y-3 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] sm:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <div className="relative flex-1">
             <input
               id="history-search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search reflections, insights, or dialogues..."
-              className="w-full pl-9 pr-4 py-2 bg-[#faf7f0] border border-[#ded7c7] rounded-xl text-xs text-[#2d2926] placeholder:text-[#a1998e] focus:outline-hidden focus:ring-2 focus:ring-[#342f2b] focus:bg-[#ffffff] transition-all"
+              placeholder="Search reflections, places, insights, or dialogues..."
+              className="w-full pl-8 sm:pl-9 pr-3.5 py-1.5 sm:py-2 bg-slate-50 border-2 border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl text-xs sm:text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none transition-all"
             />
-            <Search className="w-4 h-4 text-[#a1998e] absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 absolute left-2.5 sm:left-3 top-2.5 sm:top-2.5" />
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
             <button
               id="btn-filter-favorites"
               type="button"
               onClick={() => setOnlyFavorites(!onlyFavorites)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold border-2 transition-all ${
                 onlyFavorites
-                  ? "bg-[#fbf4ea] border-[#eddac2] text-[#8a5d32]"
-                  : "bg-[#faf7f0] border-[#ded7c7] text-[#696157] hover:text-[#2d2926]"
+                  ? "bg-amber-300 border-slate-900 text-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                  : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900"
               }`}
             >
-              <Star className={`w-3.5 h-3.5 ${onlyFavorites ? "fill-[#c48b5b] text-[#c48b5b]" : "text-[#a1998e]"}`} />
-              <span>Favorites Only</span>
+              <Star className={`w-3.5 h-3.5 ${onlyFavorites ? "fill-slate-900 text-slate-900" : "text-slate-400"}`} />
+              <span>Favorites</span>
             </button>
 
             {availableMoods.length > 0 && (
@@ -166,7 +168,7 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
                 id="select-mood-filter"
                 value={selectedMood}
                 onChange={(e) => setSelectedMood(e.target.value)}
-                className="bg-[#faf7f0] border border-[#ded7c7] text-[#524b42] text-xs rounded-xl px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-[#342f2b]"
+                className="flex-1 sm:flex-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-extrabold rounded-xl px-2.5 py-1.5 sm:py-2 focus:outline-none focus:border-slate-900"
               >
                 <option value="all">All Moods</option>
                 {availableMoods.map((m) => (
@@ -181,15 +183,15 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
       </div>
 
       {filteredEntries.length === 0 ? (
-        <div className="bg-[#ffffff] rounded-2xl border border-[#e5dfd2] p-12 text-center shadow-xs space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#f5eee3] text-[#7d562f] flex items-center justify-center mx-auto">
-            <BookOpen className="w-6 h-6" />
+        <div className="bg-white rounded-2xl border-2 border-slate-900 p-6 sm:p-12 text-center space-y-3 sm:space-y-4 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] sm:shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-300 border-2 border-slate-900 text-slate-900 flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h3 className="font-serif font-bold text-[#2d2926] text-base">
+            <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
               {entries.length === 0 ? "No Journal Entries Yet" : "No Matching Reflections"}
             </h3>
-            <p className="text-xs text-[#7d756c] max-w-sm mx-auto mt-1">
+            <p className="text-xs text-slate-600 max-w-sm mx-auto mt-0.5 font-medium leading-relaxed">
               {entries.length === 0
                 ? "Begin your first deep reflection or brain dump to start building your personal cognition repository."
                 : "Try adjusting your search terms or filters to find what you are looking for."}
@@ -199,15 +201,15 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
             <button
               type="button"
               onClick={onNewEntry}
-              className="inline-flex items-center gap-2 bg-[#342f2b] text-[#fdfbf7] text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-[#25211e] transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 bg-amber-300 hover:bg-amber-400 text-slate-900 text-xs font-extrabold px-3.5 py-2 rounded-xl border-2 border-slate-900 transition-all shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#e5b382]" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-900" />
               <span>Create First Entry</span>
             </button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-2.5 sm:gap-4">
           {filteredEntries.map((entry) => {
             const previewText =
               entry.synthesis?.summary ||
@@ -219,44 +221,54 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
                 key={entry.id}
                 id={`entry-card-${entry.id}`}
                 onClick={() => onSelectEntry(entry)}
-                className="bg-[#ffffff] hover:bg-[#faf7f0] border border-[#e5dfd2] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-sm transition-all cursor-pointer group space-y-3"
+                className="bg-white hover:bg-slate-50 border-2 border-slate-900 rounded-2xl p-3.5 sm:p-5 transition-all cursor-pointer group space-y-2.5 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] hover:shadow-[4px_4px_0px_0px_rgba(245,158,11,1)]"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-2.5">
                   <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-serif font-bold text-[#2d2926] text-base sm:text-lg group-hover:text-[#4a443f] transition-colors truncate">
+                      <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
                         {entry.title}
                       </h3>
                       {entry.isFavorite && (
-                        <Star className="w-3.5 h-3.5 fill-[#c48b5b] text-[#c48b5b] shrink-0" />
+                        <Star className="w-3.5 h-3.5 fill-slate-900 text-slate-900 shrink-0" />
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-[11px] text-[#7d756c] flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#a1998e]" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-medium text-slate-500 flex-wrap">
+                      <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                        <Calendar className="w-3 h-3 text-amber-500" />
                         {new Date(entry.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
                         })}
                       </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-3 h-3 text-[#a1998e]" />
+
+                      {entry.location && (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${entry.location.latitude},${entry.location.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[10px] text-slate-900 bg-amber-100 hover:bg-amber-200 px-1.5 py-0.5 rounded border border-slate-900 transition-colors"
+                        >
+                          <MapPin className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                          <span className="max-w-[100px] truncate font-bold">{entry.location.placeName || "Pinned"}</span>
+                        </a>
+                      )}
+
+                      <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                        <MessageSquare className="w-3 h-3 text-indigo-500" />
                         {entry.messages.length} {entry.messages.length === 1 ? "turn" : "turns"}
                       </span>
-                      <span>•</span>
-                      <span>{entry.wordCount || 0} words</span>
+                      
+                      <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{entry.wordCount || 0} words</span>
 
                       {(entry.mood || entry.synthesis?.dominantMood) && (
-                        <>
-                          <span>•</span>
-                          <span className="inline-flex items-center gap-1 bg-[#edf2ea] text-[#48563d] px-2 py-0.5 rounded-md font-medium text-[10px] border border-[#cfdacb]">
-                            <Smile className="w-3 h-3 text-[#5b6851]" />
-                            {entry.mood || entry.synthesis?.dominantMood}
-                          </span>
-                        </>
+                        <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-bold text-[10px] border border-amber-300">
+                          <Smile className="w-3 h-3 text-amber-600" />
+                          {entry.mood || entry.synthesis?.dominantMood}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -266,18 +278,18 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
                       type="button"
                       onClick={(e) => handleToggleFav(entry, e)}
                       title={entry.isFavorite ? "Unfavorite" : "Favorite"}
-                      className="p-2 text-[#a1998e] hover:text-[#c48b5b] hover:bg-[#f3ede1] rounded-lg transition-colors"
+                      className="p-1 sm:p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                     >
-                      <Star className={`w-4 h-4 ${entry.isFavorite ? "fill-[#c48b5b] text-[#c48b5b]" : ""}`} />
+                      <Star className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${entry.isFavorite ? "fill-slate-900 text-slate-900" : ""}`} />
                     </button>
 
                     <button
                       type="button"
                       onClick={(e) => handleExport(entry, e)}
                       title="Export as Markdown"
-                      className="p-2 text-[#a1998e] hover:text-[#2d2926] hover:bg-[#f3ede1] rounded-lg transition-colors"
+                      className="p-1 sm:p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
 
                     <button
@@ -285,35 +297,35 @@ export const EntryHistory = ({ userId, entries, onSelectEntry, onNewEntry }) => 
                       disabled={deletingId === entry.id}
                       onClick={(e) => handleDelete(entry.id, e)}
                       title="Delete entry"
-                      className="p-2 text-[#a1998e] hover:text-[#9e3a2f] hover:bg-[#fbeae7] rounded-lg transition-colors"
+                      className="p-1 sm:p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>
 
-                <p className="text-xs text-[#5c544b] leading-relaxed line-clamp-2">
+                <p className="text-xs text-slate-700 leading-relaxed line-clamp-2 font-medium">
                   {previewText}
                 </p>
 
-                <div className="flex items-center justify-between pt-1 border-t border-[#f0eae0] text-[11px] text-[#7d756c]">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 text-[10px] sm:text-[11px] text-slate-500 font-mono">
+                  <div className="flex items-center gap-1 flex-wrap">
                     {entry.tags?.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="bg-[#f3eee4] text-[#524b42] px-2 py-0.5 rounded text-[10px] font-mono"
+                        className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200"
                       >
                         #{tag}
                       </span>
                     ))}
                     {entry.synthesis?.insights && entry.synthesis.insights.length > 0 && (
-                      <span className="text-[#7d4f24] bg-[#fbf2ea] px-2 py-0.5 rounded text-[10px] font-medium border border-[#ebd2bf]">
-                        {entry.synthesis.insights.length} Insights synthesized
+                      <span className="text-slate-900 bg-amber-100 px-1.5 py-0.5 rounded text-[10px] font-extrabold border border-amber-300">
+                        {entry.synthesis.insights.length} Insights
                       </span>
                     )}
                   </div>
 
-                  <span className="text-[#a1998e] group-hover:text-[#2d2926] font-medium flex items-center gap-1">
+                  <span className="text-slate-900 font-extrabold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                     <span>Open</span>
                     <ExternalLink className="w-3 h-3" />
                   </span>

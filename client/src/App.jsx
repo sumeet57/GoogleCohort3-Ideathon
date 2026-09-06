@@ -5,7 +5,7 @@ import { AuthModal } from "./components/AuthModal";
 import { JournalEditor } from "./components/JournalEditor";
 import { EntryHistory } from "./components/EntryHistory";
 import { StatsInsights } from "./components/StatsInsights";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -85,19 +85,19 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#fdfbf7] flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 rounded-2xl bg-[#342f2b] text-[#fdfbf7] flex items-center justify-center shadow-xs animate-pulse">
-          <Sparkles className="w-5 h-5 text-[#e5b382] animate-spin" />
+      <div className="min-h-screen bg-amber-50/50 flex flex-col items-center justify-center p-4 space-y-3">
+        <div className="w-10 h-10 rounded-2xl bg-amber-300 border-2 border-slate-900 text-slate-900 flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] animate-bounce">
+          <Sparkles className="w-5 h-5 text-slate-900 animate-spin" />
         </div>
-        <p className="text-xs font-serif font-medium text-[#7d756c]">
-          Initializing secure cognitive vault...
+        <p className="text-xs font-mono font-extrabold text-slate-900 tracking-tight">
+          Initializing cognitive vault...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] text-[#2d2926] font-sans flex flex-col selection:bg-[#e8dac5] selection:text-[#342f2b]">
+    <div className="min-h-screen bg-amber-50/40 text-slate-800 font-sans flex flex-col selection:bg-amber-200">
       <Navbar
         user={user}
         activeTab={activeTab}
@@ -107,15 +107,16 @@ export default function App() {
         entriesCount={entries.length}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-16 sm:pb-8">
         {!user ? (
           <AuthModal onSuccess={() => setActiveTab("editor")} />
         ) : (
           <>
             {dbError && (
-              <div className="max-w-4xl mx-auto px-4 pt-4">
-                <div className="bg-[#fbeae7] border border-[#ecc9c4] text-[#852a20] text-xs p-3 rounded-xl">
-                  Firestore Notice: {dbError}
+              <div className="max-w-4xl mx-auto px-2 sm:px-6 pt-2 sm:pt-4">
+                <div className="bg-rose-100 border-2 border-slate-900 text-rose-950 text-xs p-2.5 sm:p-3 rounded-xl font-medium flex items-center gap-2 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Firestore Notice: {dbError}</span>
                 </div>
               </div>
             )}
