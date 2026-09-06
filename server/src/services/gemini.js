@@ -141,6 +141,8 @@ export async function reflect({ prompt, history = [], mode = 'reflect', entryCon
     userLocationString = isValidPlace 
       ? activeLoc.placeName 
       : (activeLoc.address || `${activeLoc.latitude}, ${activeLoc.longitude}`);
+
+      userLocationString = activeLoc.address;
   }
 
   // Dynamic system prompt that integrates location into core behavior rules
