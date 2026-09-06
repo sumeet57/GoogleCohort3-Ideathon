@@ -1,0 +1,26 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/apac-cohort3-507521/cloud-run-source-deploy/journal-client:latest'
+      - '--build-arg'
+      - 'VITE_API_URL=https://googlecohort3-ideathon-525249553704.asia-south1.run.app'
+      - '--build-arg'
+      - 'VITE_FIREBASE_API_KEY=AIzaSyBLw1qorRo_3IpF9PSHQjxsVBTsM2oMUDs'
+      - '--build-arg'
+      - 'VITE_FIREBASE_AUTH_DOMAIN=apac-cohort3-507521.firebaseapp.com'
+      - '--build-arg'
+      - 'VITE_FIREBASE_PROJECT_ID=apac-cohort3-507521'
+      - '--build-arg'
+      - 'VITE_FIREBASE_STORAGE_BUCKET=apac-cohort3-507521.firebasestorage.app'
+      - '--build-arg'
+      - 'VITE_FIREBASE_MESSAGING_SENDER_ID=525249553704'
+      - '--build-arg'
+      - 'VITE_FIREBASE_APP_ID=1:525249553704:web:bbec44868592e350b45c1d'
+      - '--build-arg'
+      - 'VITE_FIREBASE_MEASUREMENT_ID=G-99V0XB9DZ7'
+      - '.'
+
+images:
+  - 'asia-south1-docker.pkg.dev/apac-cohort3-507521/cloud-run-source-deploy/journal-client:latest'
