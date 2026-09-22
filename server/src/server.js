@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { z } from 'zod';
 import { config } from './config.js';
 import { requireAuth } from './middleware/auth.js';
@@ -45,7 +45,7 @@ const aiLimiter = rateLimit({
   limit: config.AI_RATE_LIMIT_MAX,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.uid || req.ip,
+  keyGenerator: (req) => req.user?.uid || ipKeyGenerator(req.ip),
   message: { error: 'AI request limit reached. Please wait before generating more reflections.' }
 });
 
