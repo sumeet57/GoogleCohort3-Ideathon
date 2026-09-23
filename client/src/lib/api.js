@@ -1,10 +1,26 @@
-import { getAuthToken } from "./firebase.js";
+import { auth, getAuthToken } from "./firebase.js";
 
 const configuredBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
-export async function apiRequest(path, options = {}) {
- const token = await getAuthToken();
+async function waitForAuthReady() {
+  if (auth.currentUser) return auth.currentUser;
+  
+  return new Promise((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
 
+export async function apiRequest(path, options = {}) {
+  await waitForAuthReady();
+
+  const token = await getAuthToken(true);
+
+  if (!token) {
+    throw new Error("No active authentication token available.");
+  }
 
   const response = await fetch(`${configuredBase}${path}`, {
     ...options,

@@ -66,14 +66,13 @@ export function subscribeToAuth(callback) {
         }
     });
 }
-// Server-backed data layer. Firestore is intentionally NOT accessed from the browser.
 export function subscribeToUserEntries(userId, onUpdate, onError) {
-    if (!userId)
+    if (!userId || !auth.currentUser)
         return () => { };
     let stopped = false;
     let loading = false;
     const load = async () => {
-        if (stopped || loading)
+        if (stopped || loading || !auth.currentUser)
             return;
         loading = true;
         try {
