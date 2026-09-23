@@ -18,9 +18,9 @@ const envSchema = z.object({
   MAX_HISTORY_CHARS: z.coerce.number().int().min(1000).max(200000).default(30000),
   MAX_ENTRY_TEXT_CHARS: z.coerce.number().int().min(1000).max(500000).default(50000),
   MAX_PROMPT_CHARS: z.coerce.number().int().min(100).max(50000).default(8000),
-  AI_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
-  AI_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
-  API_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
+  AI_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000), // 1 minute
+  AI_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20), // 20 AI requests per minute per user
+  API_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000), // 1 minute
   API_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
   GOOGLE_MAPS_API_KEY: z.string().min(1).default('YOUR_GOOGLE_MAPS_API_KEY')
 });

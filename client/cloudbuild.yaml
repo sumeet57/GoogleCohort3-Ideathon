@@ -5,7 +5,7 @@ steps:
       - '-t'
       - 'asia-south1-docker.pkg.dev/apac-cohort3-507521/cloud-run-source-deploy/journal-client:latest'
       - '--build-arg'
-      - 'VITE_API_URL=https://googlecohort3-ideathon-525249553704.asia-south1.run.app'
+      - 'VITE_API_URL=https://googlecohort3-ideathon-2-525249553704.asia-south1.run.app'
       - '--build-arg'
       - 'VITE_FIREBASE_API_KEY=AIzaSyBLw1qorRo_3IpF9PSHQjxsVBTsM2oMUDs'
       - '--build-arg'
